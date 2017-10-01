@@ -27,16 +27,17 @@ data_dir = settings.DATA_DIR
 
 MODEL_DIR = settings.MODEL_DIR
 batch_size = 16
-epochs = 60
+epochs = 40
 
 def get_num_corrects(preds, labels):
-    _, preds_index = preds.topk(1)
-    preds_index = preds_index.t()
+    _, preds_index = preds.topk(3)
+    #preds_index = preds_index.t()
     #print(preds_index)
     #print(labels)
     #print(labels.size())
     #print(preds_index.size())
-    num_corrects = preds_index.eq(labels.expand_as(preds_index)).sum()
+    #num_corrects = preds_index.eq(labels.expand_as(preds_index)).sum()
+    num_corrects = preds_index.eq(labels).sum()
     #print(preds_index.eq(labels))
     #print("corrects: {}".format(num_corrects))
     return num_corrects
@@ -64,7 +65,7 @@ def train_model(model, criterion, optimizer, lr_scheduler, max_num = 2, init_lr=
             running_corrects = 0
             num_examples = 0
             for data in data_loaders[phase]:
-                inputs, labels, _ = data
+                inputs, labels, labels2, _ = data
                 inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
                 optimizer.zero_grad()
                 outputs = model(inputs)
@@ -83,7 +84,7 @@ def train_model(model, criterion, optimizer, lr_scheduler, max_num = 2, init_lr=
                     loss.backward()
                     optimizer.step()
                 running_loss += loss.data[0]
-                running_corrects += get_num_corrects(outputs.data, labels.data) #torch.sum(preds.int() == labels.data.int())
+                running_corrects += get_num_corrects(outputs.data, labels2.cuda()) #torch.sum(preds.int() == labels.data.int())
                 num_examples += model.batch_size
                 print("%{:d} loss: {:.4f} acc: {:.4f}".format(num_examples*100//data_loaders[phase].num, running_loss / num_examples, running_corrects / num_examples), end='\r')
             epoch_loss = running_loss / data_loaders[phase].num
@@ -118,7 +119,7 @@ def lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=5):
         param_group['lr'] = lr
     return optimizer  
 
-def cyc_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=5):
+def cyc_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=6):
     lr = 0
     for param_group in optimizer.param_groups:
         lr = param_group['lr']

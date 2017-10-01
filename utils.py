@@ -17,9 +17,9 @@ import bcolz
 import pandas as pd
 import random
 from PIL import Image
-from inception import inception_v3
+#from inception import inception_v3
 from vgg import vgg19_bn, vgg16_bn
-from inceptionresv2 import inceptionresnetv2
+#from inceptionresv2 import inceptionresnetv2
 
 MODEL_DIR = settings.MODEL_DIR
 C = settings.NUM_CLASSES
@@ -87,6 +87,34 @@ def load_array(fname):
 
 def load_weights_file(model, w_file):
     model.load_state_dict(torch.load(w_file))
+
+def create_res18(load_weights=False, freeze=False):
+    model_ft = models.resnet18(pretrained=True)
+    if freeze:
+        for param in model_ft.parameters():
+            param.requires_grad = False
+
+    num_ftrs = model_ft.fc.in_features
+    model_ft.fc = nn.Sequential(nn.Linear(num_ftrs, C)) #, nn.Softmax())
+    model_ft = model_ft.cuda()
+
+    model_ft.name = 'res18'
+    model_ft.batch_size = 256
+    return model_ft
+
+def create_res34(load_weights=False, freeze=False):
+    model_ft = models.resnet34(pretrained=True)
+    if freeze:
+        for param in model_ft.parameters():
+            param.requires_grad = False
+
+    num_ftrs = model_ft.fc.in_features
+    model_ft.fc = nn.Sequential(nn.Linear(num_ftrs, C)) #, nn.Softmax())
+    model_ft = model_ft.cuda()
+
+    model_ft.name = 'res34'
+    model_ft.batch_size = 128
+    return model_ft
 
 def create_res50(load_weights=False, freeze=False):
     model_ft = models.resnet50(pretrained=True)
@@ -224,7 +252,7 @@ def create_vgg16bn(load_weights=False, freeze=False):
     return vgg16_bn_ft
 
 def create_inceptionv3(load_weights=False, freeze=False):
-    incept_ft = inception_v3(pretrained=True)
+    incept_ft = models.inception_v3(pretrained=True)
     if freeze:
         for param in incept_ft.parameters():
             param.requires_grad = False

@@ -32,6 +32,7 @@ class SceneDataset(data.Dataset):
                 jdata = json.load(f)
             self.filenames = [jd['image_id'] for jd in jdata]
             self.labels = np.array([int(jd['label_id']) for jd in jdata])
+            self.labels2 = np.array([[int(jd['label_id'])]*3 for jd in jdata])
             #self.labels = np.array([np.eye(NUM_CLASSES)[n] for n in self.labels], dtype=np.int)
             self.has_label = True
 
@@ -46,8 +47,7 @@ class SceneDataset(data.Dataset):
             img = self.transform(img)
 
         if self.has_label:
-            label = self.labels[index]
-            return img, label, self.filenames[index]
+            return img, self.labels[index], self.labels2[index], self.filenames[index]
         else:
             return img, self.filenames[index]
 
@@ -62,7 +62,7 @@ def randomRotate(img):
 
 data_transforms = {
     'train': transforms.Compose([
-        transforms.Scale(320), 
+        transforms.Scale(256), 
         transforms.RandomSizedCrop(224),
         #transforms.Scale(224), 
         transforms.RandomHorizontalFlip(),
@@ -81,14 +81,15 @@ data_transforms = {
         #transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     ]),
     'valid': transforms.Compose([
-        transforms.Scale(224),
-        #transforms.CenterCrop(224),
+        transforms.Scale(256), 
+        #transforms.Scale(224),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     'validv3': transforms.Compose([
-        transforms.Scale(299),
-        #transforms.CenterCrop(299),
+        transforms.Scale(480),
+        transforms.CenterCrop(299),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         #transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
@@ -175,27 +176,45 @@ from utils import create_model
 
 if __name__ == '__main__':
     model = create_model('res50')
+    model.batch_size=4
     loader = get_train_loader(model)
     print(loader.num)
     for i, data in enumerate(loader):
-        img, label, fn = data
-        print(fn)
-        print(label)
-        if i > 3:
+        img, label, label2, fn = data
+        if i > 0:
             break
-    loader = get_val_loader(model)
+        print(fn)
+        #print(label)
+        #print(label2)
+        
+    for i, data in enumerate(loader):
+        img, label, label2, fn = data
+        if i > 0:
+            break
+        print(fn)
+        #print(label)
+        #print(label2)
+        
+
+    loader = get_val_loader(model, shuffle = False)
     print(loader.num)
     for i, data in enumerate(loader):
-        img, label, fn = data
-        print(fn)
-        print(label)
-        if i > 3:
+        img, label, label2, fn = data
+        if i > 0:
             break
-    loader = get_test_loader(model)
+        print(fn)
+        #print(label)
+        #print(label2)
+    for i, data in enumerate(loader):
+        img, label, label2, fn = data
+        if i > 0:
+            break
+        print(fn)
+        
+    loader = get_tta_loader(model)
     print(loader.num)
     for i, data in enumerate(loader):
         img, fn = data
         print(fn)
-        print(label)
-        if i > 10:
+        if i > 0:
             break

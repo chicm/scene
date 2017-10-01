@@ -20,4 +20,5 @@ def resize(src_dir, tgt_dir, tgt_size):
         cv2.imwrite(tgt_fn, res)
         
 #resize('/home/chicm/ml/kgdata/ai/scene/train/imgs', '/home/chicm/ml/kgdata/ai/scene/train/480', (480,480))
-resize('/home/chicm/ml/kgdata/ai/scene/val/imgs', '/home/chicm/ml/kgdata/ai/scene/val/480', (480,480))
+#resize('/home/chicm/ml/kgdata/ai/scene/val/imgs', '/home/chicm/ml/kgdata/ai/scene/val/480', (480,480))
+resize('/home/chicm/ml/kgdata/ai/scene/test/imgs', '/home/chicm/ml/kgdata/ai/scene/test/480', (480,480))
